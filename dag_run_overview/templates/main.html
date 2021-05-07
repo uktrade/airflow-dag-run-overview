@@ -14,6 +14,30 @@
       <div class="row">
         <div class="col-sm-1"></div>
         <div class="col-sm-10">
+          <form id="filter_form" method="GET">
+            <div class="pull-right">
+              <table class="filters">
+                <tr class="form-horizontal">
+                  <td>
+                    <select class="filter-op" name="state">
+                      <option selected="selected"></option>
+                      <option value="running"{% if filter == 'running' %} selected="selected"{% endif %}>Running</option>
+                      <option value="success"{% if filter == 'success' %} selected="success"{% endif %}>Success</option>
+                      <option value="failed"{% if filter == 'failed' %} selected="failed"{% endif %}>Failed</option>
+                    </select>
+                  </td>
+                  <td>
+                    <button type="submit" class="btn btn-primary" style="">Filter</button>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-10">
           <table id="dags" class="table table-striped table-bordered dataTable no-footer" role="grid">
             <thead>
               <tr role="row">
@@ -27,44 +51,42 @@
             </thead>
             <tbody>
               {% for dag in dags %}
-                {% with last_dag_run=dag.get_last_dagrun() %}
-                  <tr role="row">
-                    <td>
-                      <a href="{{ url_for('airflow.graph', dag_id=dag.dag_id) }}" title="Graph View">
-                        {{ dag.safe_dag_id }}
-                      </a>
-                    </td>
-                    <td>
-                      <span class="label label-default schedule">
-                        {{ dag.schedule_interval }}
+                <tr role="row">
+                  <td>
+                    <a href="{{ url_for('airflow.graph', dag_id=dag.dag_id) }}" title="Graph View">
+                      {{ dag.safe_dag_id }}
+                    </a>
+                  </td>
+                  <td>
+                    <span class="label label-default schedule">
+                      {{ dag.schedule_interval }}
+                    </span>
+                  </td>
+                  <td>
+                    {{ dag.last_dag_run.start_date.strftime('%c') }}
+                  </td>
+                  <td>
+                    {% if dag.last_dag_run.end_date %}
+                      {{ dag.last_dag_run.end_date.strftime('%c') }}
+                    {% else %}
+                      N/A
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if dag.last_dag_run.end_date %}
+                      {{ dag.last_dag_run.end_date - dag.last_dag_run.start_date }}
+                    {% else %}
+                      N/A
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% with state=dag.last_dag_run.get_state() %}
+                      <span class="label" style="border: none; background-color:{{ State.color(state)}}; color: {{ State.color_fg(state) }};">
+                        {{ state }}
                       </span>
-                    </td>
-                    <td>
-                      {{ last_dag_run.start_date.strftime('%c') }}
-                    </td>
-                    <td>
-                      {% if last_dag_run.end_date %}
-                        {{ last_dag_run.end_date.strftime('%c') }}
-                      {% else %}
-                        N/A
-                      {% endif %}
-                    </td>
-                    <td>
-                      {% if last_dag_run.end_date %}
-                        {{ last_dag_run.end_date - last_dag_run.start_date }}
-                      {% else %}
-                        N/A
-                      {% endif %}
-                    </td>
-                    <td>
-                      {% with state=last_dag_run.get_state() %}
-                        <span class="label" style="border: none; background-color:{{ State.color(state)}}; color: {{ State.color_fg(state) }};">
-                          {{ state }}
-                        </span>
-                      {% endwith %}
-                    </td>
-                  </tr>
-                {% endwith %}
+                    {% endwith %}
+                  </td>
+                </tr>
               {% endfor %}
             </tbody>
           </table>
