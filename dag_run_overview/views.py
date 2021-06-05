@@ -18,7 +18,7 @@ class DROView(BaseView):
             'dag_id': dag.dag_id,
             'safe_dag_id': dag.safe_dag_id,
             'schedule_interval': dag.schedule_interval,
-            'last_dag_run': dag.get_last_dagrun(),
+            'last_dag_run': dag.get_last_dagrun(include_externally_triggered=True),
         } for dag in DagBag(include_examples=False).dags.values()
             if not dag.is_paused and dag.get_last_dagrun() is not None
         ]
