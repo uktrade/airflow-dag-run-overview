@@ -1,3 +1,5 @@
-black==20.8b1
-pip-tools==1.8.0
-pylint==2.7.2
+apache-airflow
+black
+pip-tools
+pylint
+flask-admin
