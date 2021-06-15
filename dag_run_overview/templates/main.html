@@ -51,7 +51,7 @@
               {% for dag in dags %}
                 <tr role="row">
                   <td>
-                    <a href="{{ url_for('airflow.graph', dag_id=dag.dag_id) }}" title="Graph View">
+                    <a href="{{ url_for('Airflow.graph', dag_id=dag.dag_id) }}" title="Graph View">
                       {{ dag.safe_dag_id }}
                     </a>
                   </td>
