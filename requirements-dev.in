@@ -1,5 +1,0 @@
-apache-airflow
-black
-pip-tools
-pylint
-flask-admin
