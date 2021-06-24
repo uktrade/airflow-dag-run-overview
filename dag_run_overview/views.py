@@ -3,17 +3,15 @@ from airflow.utils.db import provide_session
 from airflow.utils.state import State
 
 from flask import request
-
-from flask_admin import BaseView, expose
-
-from flask_login import login_required
+from flask_appbuilder import expose, BaseView
 
 
 class DROView(BaseView):
+    default_view = 'list'
+
     @expose("/")
     @provide_session
-    @login_required
-    def test(self, session=None):
+    def list(self, session=None):
         dags = [{
             'dag_id': dag.dag_id,
             'safe_dag_id': dag.safe_dag_id,
@@ -30,7 +28,4 @@ class DROView(BaseView):
                 dags
             )
 
-        return self.render("main.html", dags=dags, State=State, filter=state_filter)
-
-
-dro_view = DROView(category="Dag Runs", name="Dag Run Overview")
+        return self.render_template("main.html", dags=dags, State=State, filter=state_filter)
