@@ -1,4 +1,13 @@
 {% extends base_template %}
+{% block head_css %}
+  {{ super() }}
+  <style>
+    table#dags tr td:last-child {
+      max-width: 300px;
+      word-break: break-word;
+    }
+  </style>
+{% endblock %}
 {% block content %}
   <div class="row">
     <div class="col-sm-1"></div>
