@@ -25,7 +25,7 @@
                     </select>
                   </td>
                   <td>
-                    <button type="submit" class="btn btn-primary" style="">Filter</button>
+                    &nbsp;<button type="submit" class="btn btn-primary" style="">Filter</button>
                   </td>
                 </tr>
               </table>
@@ -45,13 +45,14 @@
                 <th>Last run end</th>
                 <th>Last run duration</th>
                 <th>Status</th>
+                <th>Task(s)</th>
               </tr>
             </thead>
             <tbody>
               {% for dag in dags %}
                 <tr role="row">
                   <td>
-                    <a href="{{ url_for('Airflow.graph', dag_id=dag.dag_id) }}" title="Graph View">
+                    <a href="{{ url_for('Airflow.graph', dag_id=dag.dag_id) }}">
                       {{ dag.safe_dag_id }}
                     </a>
                   </td>
@@ -72,17 +73,24 @@
                   </td>
                   <td>
                     {% if dag.last_dag_run.end_date %}
-                      {{ dag.last_dag_run.end_date - dag.last_dag_run.start_date }}
+                      {{ ((dag.last_dag_run.end_date - dag.last_dag_run.start_date)|string).split('.')[0] }}
                     {% else %}
                       N/A
                     {% endif %}
                   </td>
                   <td>
-                    {% with state=dag.last_dag_run.get_state() %}
-                      <span class="label" style="border: none; background-color:{{ State.color(state)}}; color: {{ State.color_fg(state) }};">
-                        {{ state }}
-                      </span>
-                    {% endwith %}
+                    <span class="label" style="border: none; background-color:{{ State.color(dag.state)}}; color: {{ State.color_fg(dag.state) }};">
+                      {{ dag.state }}
+                    </span>
+                  </td>
+                  <td>
+                    {% if dag.state == 'running' or dag.state == 'failed' %}
+                      {% for task in dag.tasks %}
+                        {{ task.task_id }}{% if not loop.last %}, {% endif %}
+                      {% endfor %}
+                    {% else %}
+                      -
+                    {% endif %}
                   </td>
                 </tr>
               {% endfor %}
