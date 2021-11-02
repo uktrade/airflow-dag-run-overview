@@ -93,7 +93,7 @@
                     </span>
                   </td>
                   <td>
-                    {% if dag.state == 'running' or dag.state == 'failed' %}
+                    {% if dag.tasks %}
                       {% for task in dag.tasks %}
                         {{ task.task_id }}{% if not loop.last %}, {% endif %}
                       {% endfor %}
