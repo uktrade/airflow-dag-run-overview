@@ -71,7 +71,11 @@
                     </span>
                   </td>
                   <td>
-                    {{ dag.last_dag_run.start_date.strftime('%c') }}
+                    {% if dag.last_dag_run.start_date %}
+                      {{ dag.last_dag_run.start_date.strftime('%c') }}
+                    {% else %}
+                      N/A
+                    {% endif %}
                   </td>
                   <td>
                     {% if dag.last_dag_run.end_date %}
