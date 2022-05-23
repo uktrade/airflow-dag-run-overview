@@ -6,6 +6,17 @@ from flask import request
 from flask_appbuilder import expose, BaseView
 
 
+def _get_dag_state(dag_run):
+    if dag_run.get_state() == "success":
+        # We determine if a dag was successful or not based on the swap tables task.
+        # This is because airflow marks a dag as success based on whether the last
+        # task succeeded, which for us is always the case
+        swap_task = dag_run.get_task_instance("swap-dataset-table-datasets_db")
+        if swap_task is not None:
+            return swap_task.current_state()
+    return dag_run.get_state()
+
+
 class DROView(BaseView):
     default_view = 'list'
 
@@ -25,7 +36,7 @@ class DROView(BaseView):
                 session=session, include_externally_triggered=True
             )
             if last_run is not None:
-                current_state = last_run.get_state()
+                current_state = _get_dag_state(last_run)
                 if state_filter and current_state != state_filter:
                     continue
                 dags.append(
