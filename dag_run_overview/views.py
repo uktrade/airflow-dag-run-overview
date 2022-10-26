@@ -1,20 +1,15 @@
-from airflow.models import DagModel
+from airflow.models import clear_task_instances
 from airflow.utils.db import provide_session
 from airflow.utils.state import State
+from airflow.www.api.experimental.endpoints import (
+    api_experimental,
+    requires_authentication,
+)
 
-from flask import request
+from flask import abort, jsonify, make_response, request
 from flask_appbuilder import expose, BaseView
 
-
-def _get_dag_state(dag_run):
-    if dag_run.get_state() == "success":
-        # We determine if a dag was successful or not based on the swap tables task.
-        # This is because airflow marks a dag as success based on whether the last
-        # task succeeded, which for us is always the case
-        swap_task = dag_run.get_task_instance("swap-dataset-table-datasets_db")
-        if swap_task is not None:
-            return swap_task.current_state()
-    return dag_run.get_state()
+from dag_run_overview.utils import get_dag_state, get_enabled_dags, get_latest_dag_runs
 
 
 class DROView(BaseView):
@@ -25,42 +20,75 @@ class DROView(BaseView):
     def list(self, session=None):
         state_filter = request.args.get('state')
 
-        dags = []
-
-        for dag in (
-            session.query(DagModel)
-            .filter(DagModel.is_paused == False)
-            .order_by(DagModel.dag_id)
-        ):
-            last_run = dag.get_last_dagrun(
-                session=session, include_externally_triggered=True
-            )
-            if last_run is not None:
-                current_state = _get_dag_state(last_run)
-                if state_filter and current_state != state_filter:
-                    continue
-                dags.append(
-                    {
-                        'dag_id': dag.dag_id,
-                        'safe_dag_id': dag.safe_dag_id,
-                        'schedule_interval': dag.schedule_interval,
-                        'last_dag_run': last_run,
-                        'state': current_state,
-                        'tasks': sorted(
-                            [
-                                task
-                                for task in last_run.get_task_instances(
-                                    session=session, state=current_state
-                                )
-                                if task.start_date is not None
-                            ],
-                            key=lambda x: x.start_date,
-                        )
-                        if current_state in [State.RUNNING, State.FAILED]
-                        else [],
-                    }
-                )
-
         return self.render_template(
-            "main.html", dags=dags, State=State, filter=state_filter
+            "main.html",
+            dags=get_latest_dag_runs(session, state_filter),
+            State=State,
+            filter=state_filter,
         )
+
+
+@api_experimental.route('/dro/latest-dag-runs', methods=['GET'])
+@requires_authentication
+@provide_session
+def list_latest_dag_runs(session):
+    """
+    Returns the last run information for all enabled DAGs. Optionally filtered
+    by state and tag.
+    """
+    state_filter = request.args.get('state')
+    tag_filter = request.args.get('tag')
+    return jsonify(get_latest_dag_runs(session, state_filter, tag_filter))
+
+
+@api_experimental.route('/dro/clear-failed-dags', methods=['POST'])
+@requires_authentication
+@provide_session
+def clear_failed_dag_runs(session):
+    """
+    Clear all tasks for all failed DAGs (that are enabled). Optionally filtering by tag.
+    """
+    tag_filter = request.args.get('tag')
+    cleared_count = 0
+    for dag in get_enabled_dags(session, request.args.get('tag')):
+        last_run = dag.get_last_dagrun(
+            session=session, include_externally_triggered=True
+        )
+        if last_run is None or get_dag_state(last_run) != State.FAILED:
+            continue
+
+        if tag_filter and tag_filter not in [x.name for x in dag.tags]:
+            continue
+
+        clear_task_instances(last_run.get_task_instances(), session)
+        cleared_count += 1
+    return jsonify(status=f"Cleared tasks for {cleared_count} failed DAGs")
+
+
+@api_experimental.route('/dro/clear-dags', methods=['POST'])
+@requires_authentication
+@provide_session
+def clear_dag_runs(session):
+    """
+    Given a json object containing a `dag_igs` list, clear all tasks for
+    the specified ids. If the DAG ID does not exist or the DAG is disabled
+    it will be skipped.
+    """
+    if "dag_ids" not in request.json:
+        return abort(
+            make_response(jsonify(status="Please provide a list of dag_ids"), 400)
+        )
+    cleared_count = 0
+    dags = [x for x in get_enabled_dags(session) if x.dag_id in request.json["dag_ids"]]
+    for dag in dags:
+        last_run = dag.get_last_dagrun(
+            session=session, include_externally_triggered=True
+        )
+        if last_run is None:
+            continue
+
+        clear_task_instances(last_run.get_task_instances(), session)
+        cleared_count += 1
+    return jsonify(
+        status=f"Cleared tasks for {cleared_count} DAG{'s' if cleared_count != 1 else ''}"
+    )
