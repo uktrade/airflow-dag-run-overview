@@ -49,6 +49,10 @@ def get_latest_dag_runs(session, state=None, tag=None):
                     },
                     'tags': [tag.name for tag in dag.tags],
                     'state': current_state,
+                    'label_style': {
+                        'background': State.color(current_state),
+                        'foreground': State.color_fg(current_state),
+                    },
                     'tasks': sorted(
                         [
                             {

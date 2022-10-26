@@ -5,5 +5,5 @@ dro_blueprint = Blueprint(
     __name__,
     template_folder="templates",
     static_folder="static",
-    static_url_path="/static/dro_plugin",
+    static_url_path="/droview/static/",
 )
