@@ -42,13 +42,17 @@ def get_latest_dag_runs(session, state=None, tag=None):
                 {
                     'dag_id': dag.dag_id,
                     'safe_dag_id': dag.safe_dag_id,
-                    'schedule_interval': dag.schedule_interval,
+                    'schedule_interval': str(dag.schedule_interval),
                     'last_dag_run': {
                         'start_date': last_run.start_date,
                         'end_date': last_run.end_date,
                     },
                     'tags': [tag.name for tag in dag.tags],
                     'state': current_state,
+                    'label_style': {
+                        'background': State.color(current_state),
+                        'foreground': State.color_fg(current_state),
+                    },
                     'tasks': sorted(
                         [
                             {
@@ -66,4 +70,4 @@ def get_latest_dag_runs(session, state=None, tag=None):
                     else [],
                 }
             )
-    return dags
+    return sorted(dags, key=lambda x: x["dag_id"])

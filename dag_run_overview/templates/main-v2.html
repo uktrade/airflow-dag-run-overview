@@ -1,0 +1,64 @@
+{% extends base_template %}
+{% block head_css %}
+  {{ super() }}
+  <link rel="stylesheet" href="/droview/static/dro.css" />
+{% endblock %}
+{% block content %}
+  <div class="row">
+    <div class="col-sm-12">
+      <h2>Latest DAG Runs</h2>
+      <br />
+    </div>
+  </div>
+  <div id="main_content">
+    <div class="dro-toolbar">
+      <div class="dro-toolbar-left">
+        <button type="button" class="btn" id="clear-high-priority">
+          <span class="material-icons">error</span>
+          Rerun failed high priority DAGs
+        </button>
+      </div>
+      <div class="dro-toolbar-right">
+        <button type="button" class="btn" id="clear-selected" disabled="disabled">
+          <span class="material-icons">clear_all</span>
+          Rerun selected DAGs
+        </button>
+        &nbsp;
+        <button type="button" class="btn" id="refresh">
+          <span class="material-icons">refresh</span>
+        </button>
+
+      </div>
+
+    </div>
+    <div id="dag-grid" class="ag-theme-alpine"></div>
+  </div>
+  <script src="/droview/static/ag-grid-community.min.js"></script>
+  <script src="/droview/static/dayjs.min.js"></script>
+  <script src="/droview/static/dag-grid.js"></script>
+  <script>
+    var data = [
+      {% for dag in dags %}
+        {
+          dagId: "{{ dag.safe_dag_id }}",
+          state: "{{ dag.state }}",
+          scheduleInterval: "{{ dag.schedule_interval }}",
+          startDate: "{% if dag.last_dag_run.start_date %}{{ dag.last_dag_run.start_date.strftime('%a %b %-d %X') }}{% else %}N/A{% endif %}",
+          endDate: "{% if dag.last_dag_run.end_date %}{{ dag.last_dag_run.end_date.strftime('%a %b %-d %X') }}{% else %}N/A{% endif %}",
+          labelStyle: {
+            background: "{{ dag.label_style.background }}",
+            foreground: "{{ dag.label_style.foreground }}"
+          },
+          priority: "{% if "High Priority" in dag.tags %}high{% endif %}"
+        },
+      {% endfor %}
+    ];
+    document.addEventListener('DOMContentLoaded', function() {
+      window.initDataGrid(
+        data,
+        {% if state_filter %}"{{ state_filter }}"{% else %}null{% endif %},
+        {% if priority_filter %}"{{ priority_filter }}"{% else %}null{% endif %}
+      );
+    });
+  </script>
+{% endblock content %}

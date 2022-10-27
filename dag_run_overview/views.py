@@ -27,6 +27,19 @@ class DROView(BaseView):
             filter=state_filter,
         )
 
+    @expose("/v2/")
+    @provide_session
+    def list_v2(self, session=None):
+        state_filter = request.args.get('state')
+        priority = request.args.get('priority')
+        return self.render_template(
+            "main-v2.html",
+            dags=get_latest_dag_runs(session),
+            State=State,
+            state_filter=state_filter,
+            priority_filter=priority,
+        )
+
 
 @api_experimental.route('/dro/latest-dag-runs', methods=['GET'])
 @requires_authentication
