@@ -31,13 +31,13 @@ class DROView(BaseView):
     @provide_session
     def list_v2(self, session=None):
         state_filter = request.args.get('state')
-        tag_filter = request.args.get('tag')
+        priority = request.args.get('priority')
         return self.render_template(
             "main-v2.html",
             dags=get_latest_dag_runs(session),
             State=State,
             state_filter=state_filter,
-            tag_filter=tag_filter,
+            priority_filter=priority,
         )
 
 

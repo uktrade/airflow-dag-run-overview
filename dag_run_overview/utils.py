@@ -70,4 +70,4 @@ def get_latest_dag_runs(session, state=None, tag=None):
                     else [],
                 }
             )
-    return dags
+    return sorted(dags, key=lambda x: x["dag_id"])

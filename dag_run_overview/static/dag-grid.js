@@ -246,7 +246,7 @@ function initDataGrid(rowData, stateFilter, tagFilter) {
         suppressFilterButton: true
       },
       cellRenderer: function(cellData) {
-        if (cellData.data.priority === "HIGH") {
+        if (cellData.data.priority === "high") {
           return '<span class="text-danger" title="High priority">' +
                 '<span class="material-icons" aria-hidden="true">error</span>' +
                 '&nbsp;High'
@@ -282,7 +282,7 @@ function initDataGrid(rowData, stateFilter, tagFilter) {
     rowData: rowData,
     components: {
       stateFloatingFilter: getDropdownFilterComponent(["running", "failed", "success"]),
-      highProfileFloatingFilter: getDropdownFilterComponent(["HIGH"]),
+      highProfileFloatingFilter: getDropdownFilterComponent(["high"]),
     },
     loadingOverlayComponent: LoadingOverlay,
     loadingOverlayComponentParams: {
@@ -307,13 +307,21 @@ function initDataGrid(rowData, stateFilter, tagFilter) {
           filter: stateFilter
         };
       }
+      if (tagFilter !== null) {
+        console.log('TAG FILTER', tagFilter);
+        filterModel.priority = {
+          filterType: 'text',
+          type: 'equals',
+          filter: tagFilter
+        };
+      }
       gridOptions.api.setFilterModel(filterModel);
       initToolbar(gridOptions);
+      autoSizeColumns(gridOptions.columnApi);
     },
   };
   var gridContainer = document.querySelector('#dag-grid');
   new agGrid.Grid(gridContainer, gridOptions);
-  autoSizeColumns(gridOptions.columnApi);
 }
 
 window.initDataGrid = initDataGrid;

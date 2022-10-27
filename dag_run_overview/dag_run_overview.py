@@ -9,8 +9,13 @@ class DagRunOverviewPlugin(AirflowPlugin):
     flask_blueprints = [dro_blueprint]
     appbuilder_views = [
         {
-            "name": "DAG Runs",
+            "name": "DAG Runs v1",
             "category": "Dag Run Overview",
             "view": DROView()
         }
     ]
+    appbuilder_menu_items = [{
+        "name": "DAG Runs v2",
+        "category": "Dag Run Overview",
+        "href": "/droview/v2/"
+    }]
