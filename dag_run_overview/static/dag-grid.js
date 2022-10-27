@@ -201,7 +201,7 @@ function initDataGrid(rowData, stateFilter, tagFilter) {
       field: "dagId",
       headerName: "DAG",
       cellRenderer: function(cellData) {
-        return '<a href="/dags/"' + cellData.getValue() + '>' + cellData.getValue() + '<a>';
+        return '<a href="/dags/' + cellData.getValue() + '/graph">' + cellData.getValue() + '<a>';
       },
       headerCheckboxSelection: true,
       headerCheckboxSelectionFilteredOnly: true,
