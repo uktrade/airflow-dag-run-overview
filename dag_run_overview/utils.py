@@ -42,7 +42,7 @@ def get_latest_dag_runs(session, state=None, tag=None):
                 {
                     'dag_id': dag.dag_id,
                     'safe_dag_id': dag.safe_dag_id,
-                    'schedule_interval': dag.schedule_interval,
+                    'schedule_interval': str(dag.schedule_interval),
                     'last_dag_run': {
                         'start_date': last_run.start_date,
                         'end_date': last_run.end_date,
