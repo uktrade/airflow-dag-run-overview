@@ -98,6 +98,7 @@ function dateFilterComparator(filterDate, cellDate) {
 function clearDags(dag_ids, callback) {
   var xhr = new XMLHttpRequest();
   xhr.open('POST', "/droview/api/clear-dags", true);
+  xhr.setRequestHeader('X-CSRFToken', csrfToken);
   xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
   xhr.onreadystatechange = function() {
     if (this.readyState === XMLHttpRequest.DONE) {
@@ -110,6 +111,7 @@ function clearDags(dag_ids, callback) {
 function clearHighPriorityDags( callback) {
   var xhr = new XMLHttpRequest();
   xhr.open('POST', "/droview/api/clear-failed-dags?tag=High%20Priority", true);
+  xhr.setRequestHeader('X-CSRFToken', csrfToken);
   xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
   xhr.onreadystatechange = function() {
     if (this.readyState === XMLHttpRequest.DONE) {
