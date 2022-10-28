@@ -97,7 +97,7 @@ function dateFilterComparator(filterDate, cellDate) {
 
 function clearDags(dag_ids, callback) {
   var xhr = new XMLHttpRequest();
-  xhr.open('POST', "/api/experimental/dro/clear-dags", true);
+  xhr.open('POST', "/droview/api/clear-dags", true);
   xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
   xhr.onreadystatechange = function() {
     if (this.readyState === XMLHttpRequest.DONE) {
@@ -109,7 +109,7 @@ function clearDags(dag_ids, callback) {
 
 function clearHighPriorityDags( callback) {
   var xhr = new XMLHttpRequest();
-  xhr.open('POST', "/api/experimental/dro/clear-failed-dags?tag=High%20Priority", true);
+  xhr.open('POST', "/droview/api/clear-failed-dags?tag=High%20Priority", true);
   xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
   xhr.onreadystatechange = function() {
     if (this.readyState === XMLHttpRequest.DONE) {
@@ -121,7 +121,7 @@ function clearHighPriorityDags( callback) {
 
 function refreshGrid(gridOptions, callback) {
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', "/api/experimental/dro/latest-dag-runs", true);
+  xhr.open('GET', "/droview/api/latest-dag-runs", true);
   xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
   xhr.onreadystatechange = function() {
     if (this.readyState === XMLHttpRequest.DONE) {
