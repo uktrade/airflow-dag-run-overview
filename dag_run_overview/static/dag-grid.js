@@ -261,6 +261,8 @@ function initDataGrid(rowData, stateFilter, tagFilter) {
       filter: false,
       sortable: false,
       cellRenderer: function (cellData) {
+        var buttonWrap = document.createElement("div");
+        buttonWrap.className = "action-button-wrap";
         var playButton = document.createElement("a");
         playButton.href = "#";
         playButton.title = "Rerun this DAG";
@@ -274,7 +276,16 @@ function initDataGrid(rowData, stateFilter, tagFilter) {
             });
           });
         }
-        return playButton;
+        buttonWrap.append(playButton)
+        if (cellData.data.logUrl != null) {
+          var viewLogButton = document.createElement("a");
+          viewLogButton.href = cellData.data.logUrl;
+          viewLogButton.title = "View pipline logs";
+          viewLogButton.target = "__blank";
+          viewLogButton.innerHTML = '<span class="material-icons" aria-hidden="true">list</span>'
+          buttonWrap.append(viewLogButton);
+        }
+        return buttonWrap;
       }
     }, {
       field: "labelStyle",
