@@ -19,6 +19,13 @@
         </button>
       </div>
       <div class="dro-toolbar-right">
+        {% if docs_link %}
+          <a href="{{ docs_link }}" class="btn" target="_blank">
+            <span class="material-icons">book</span>
+            Docs
+          </a>
+          &nbsp;
+        {% endif %}
         <button type="button" class="btn" id="clear-selected" disabled="disabled">
           <span class="material-icons">clear_all</span>
           Rerun selected DAGs
@@ -51,8 +58,9 @@
           },
           priority: "{% if "High Priority" in dag.tags %}high{% endif %}",
           {% if dag.log_url %}
-            logUrl: "{{ dag.log_url|safe }}"
+            logUrl: "{{ dag.log_url|safe }}",
           {% endif %}
+          tasks: [{% for task in dag.tasks %}"{{ task.task_id }}",{% endfor %}]
         },
       {% endfor %}
     ];

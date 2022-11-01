@@ -1,10 +1,8 @@
+import os
+
 from airflow.models import clear_task_instances
 from airflow.utils.db import provide_session
 from airflow.utils.state import State
-from airflow.www.api.experimental.endpoints import (
-    api_experimental,
-    requires_authentication,
-)
 
 from flask import abort, jsonify, make_response, request
 from flask_appbuilder import expose, BaseView
@@ -38,6 +36,7 @@ class DROView(BaseView):
             State=State,
             state_filter=state_filter,
             priority_filter=priority,
+            docs_link=os.environ.get("DAG_RUN_OVERVIEW_DOCS_LINK")
         )
 
     @expose("/api/latest-dag-runs", ["GET"])
