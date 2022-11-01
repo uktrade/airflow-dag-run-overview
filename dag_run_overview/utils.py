@@ -1,3 +1,5 @@
+import os
+
 from airflow.models import DagModel, DagRun, DagTag
 from airflow.utils.state import State
 from sqlalchemy.orm import joinedload
@@ -29,7 +31,7 @@ def get_enabled_dags(session, tag=None):
 
 def get_latest_dag_runs(session, state=None, tag=None):
     dags = []
-
+    pipeline_log_url = os.environ.get("PIPELINE_LOG_URL")
     for dag in get_enabled_dags(session, tag):
         last_run = dag.get_last_dagrun(
             session=session, include_externally_triggered=True
@@ -53,6 +55,11 @@ def get_latest_dag_runs(session, state=None, tag=None):
                         'background': State.color(current_state),
                         'foreground': State.color_fg(current_state),
                     },
+                    'log_url': (
+                        pipeline_log_url.format(pipeline_name=dag.dag_id)
+                        if pipeline_log_url is not None
+                        else None
+                    ),
                     'tasks': sorted(
                         [
                             {

@@ -49,7 +49,10 @@
             background: "{{ dag.label_style.background }}",
             foreground: "{{ dag.label_style.foreground }}"
           },
-          priority: "{% if "High Priority" in dag.tags %}high{% endif %}"
+          priority: "{% if "High Priority" in dag.tags %}high{% endif %}",
+          {% if dag.log_url %}
+            logUrl: "{{ dag.log_url|safe }}"
+          {% endif %}
         },
       {% endfor %}
     ];
