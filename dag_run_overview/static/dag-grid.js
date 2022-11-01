@@ -132,10 +132,12 @@ function refreshGrid(gridOptions, callback) {
         var dag = response[i];
         var rowNode = gridOptions.api.getRowNode(dag.dag_id);
         rowNode.setDataValue("labelStyle", dag.label_style);
+        rowNode.setDataValue("tasks", dag.tasks.map(function(t) { return t.task_id}));
         rowNode.setDataValue("state", dag.state);
         rowNode.setDataValue("endDate", "N/A");
       }
       gridOptions.api.refreshCells()
+      showHideHighPriorityMessage(gridOptions);
       callback();
     }
   }
@@ -178,6 +180,20 @@ function initToolbar(gridOptions) {
       });
     });
   });
+}
+
+function showHideHighPriorityMessage(gridOptions) {
+  var numFailed =gridOptions.api.getModel().rowsToDisplay.filter(function(row) {
+    return row.data.state === "failed" && row.data.priority === "high";
+  }).length;
+  var el = document.getElementById("high-priority-failures-message");
+  if (numFailed > 0) {
+    document.getElementById("num-high-priority-failures").innerText = numFailed;
+    el.classList.remove("hidden");
+  }
+  else {
+    el.classList.add("hidden");
+  }
 }
 
 function initDataGrid(rowData, stateFilter, tagFilter) {
@@ -291,6 +307,10 @@ function initDataGrid(rowData, stateFilter, tagFilter) {
       field: "labelStyle",
       hide: true,
       suppressToolPanel: true
+    }, {
+      field: "tasks",
+      hide: true,
+      suppressToolPanel: true
     }],
     rowData: rowData,
     components: {
@@ -321,7 +341,6 @@ function initDataGrid(rowData, stateFilter, tagFilter) {
         };
       }
       if (tagFilter !== null) {
-        console.log('TAG FILTER', tagFilter);
         filterModel.priority = {
           filterType: 'text',
           type: 'equals',
@@ -331,6 +350,7 @@ function initDataGrid(rowData, stateFilter, tagFilter) {
       gridOptions.api.setFilterModel(filterModel);
       initToolbar(gridOptions);
       autoSizeColumns(gridOptions.columnApi);
+      showHideHighPriorityMessage(gridOptions);
     },
   };
   var gridContainer = document.querySelector('#dag-grid');
