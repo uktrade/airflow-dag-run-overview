@@ -11,6 +11,10 @@
     </div>
   </div>
   <div id="main_content">
+    <div id="high-priority-failures-message" style="margin-top: 10px;" class="alert alert-warning hidden" role="alert">
+      <span class="material-icons" aria-hidden="true">warning</span>
+      Warning: <span id="num-high-priority-failures"></span> failed high priority pipeline(s)
+    </div>
     <div class="dro-toolbar">
       <div class="dro-toolbar-left">
         <button type="button" class="btn" id="clear-high-priority">
@@ -19,6 +23,13 @@
         </button>
       </div>
       <div class="dro-toolbar-right">
+        {% if docs_link %}
+          <a href="{{ docs_link }}" class="btn" target="_blank">
+            <span class="material-icons">book</span>
+            Docs
+          </a>
+          &nbsp;
+        {% endif %}
         <button type="button" class="btn" id="clear-selected" disabled="disabled">
           <span class="material-icons">clear_all</span>
           Rerun selected DAGs
@@ -51,8 +62,9 @@
           },
           priority: "{% if "High Priority" in dag.tags %}high{% endif %}",
           {% if dag.log_url %}
-            logUrl: "{{ dag.log_url|safe }}"
+            logUrl: "{{ dag.log_url|safe }}",
           {% endif %}
+          tasks: [{% for task in dag.tasks %}"{{ task.task_id }}",{% endfor %}]
         },
       {% endfor %}
     ];
