@@ -40,7 +40,7 @@
     var data = [
       {% for dag in dags %}
         {
-          dagId: "{{ dag.safe_dag_id }}",
+          dagId: "{{ dag.dag_id }}",
           state: "{{ dag.state }}",
           scheduleInterval: "{{ dag.schedule_interval }}",
           startDate: "{% if dag.last_dag_run.start_date %}{{ dag.last_dag_run.start_date.strftime('%a %b %-d %X') }}{% else %}N/A{% endif %}",
