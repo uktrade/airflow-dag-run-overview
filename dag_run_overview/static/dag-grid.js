@@ -205,7 +205,7 @@ function formatDate(d) {
   return "N/A";
 }
 
-function initDataGrid(rowData, stateFilter, tagFilter) {
+function initDataGrid(rowData, stateFilter, tagFilter, dagFilter) {
   var gridOptions = {
     suppressRowClickSelection: true,
     rowSelection: 'multiple',
@@ -370,6 +370,13 @@ function initDataGrid(rowData, stateFilter, tagFilter) {
           filterType: 'text',
           type: 'equals',
           filter: tagFilter
+        };
+      }
+      if (dagFilter !== null) {
+        filterModel.dagId = {
+          filterType: 'text',
+          type: 'contains',
+          filter: dagFilter
         };
       }
       gridOptions.api.setFilterModel(filterModel);

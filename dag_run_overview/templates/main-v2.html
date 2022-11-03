@@ -73,7 +73,8 @@
       window.initDataGrid(
         data,
         {% if state_filter %}"{{ state_filter }}"{% else %}null{% endif %},
-        {% if priority_filter %}"{{ priority_filter }}"{% else %}null{% endif %}
+        {% if priority_filter %}"{{ priority_filter }}"{% else %}null{% endif %},
+        {% if dag_filter %}"{{ dag_filter }}"{% else %}null{% endif %}
       );
     });
   </script>
