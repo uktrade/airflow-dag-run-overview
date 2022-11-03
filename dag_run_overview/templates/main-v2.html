@@ -54,8 +54,9 @@
           dagId: "{{ dag.dag_id }}",
           state: "{{ dag.state }}",
           scheduleInterval: "{{ dag.schedule_interval }}",
-          startDate: "{% if dag.last_dag_run.start_date %}{{ dag.last_dag_run.start_date.strftime('%a %b %-d %X') }}{% else %}N/A{% endif %}",
-          endDate: "{% if dag.last_dag_run.end_date %}{{ dag.last_dag_run.end_date.strftime('%a %b %-d %X') }}{% else %}N/A{% endif %}",
+          startDate: {% if dag.last_dag_run.start_date %}"{{ dag.last_dag_run.start_date }}"{% else %}null{% endif %},
+          endDate: {% if dag.last_dag_run.end_date %}"{{ dag.last_dag_run.end_date }}"{% else %}null{% endif %},
+          lastSuccessfulRun: {% if dag.last_successful_run.end_date %}"{{ dag.last_successful_run.end_date }}"{% else %}null{% endif %},
           labelStyle: {
             background: "{{ dag.label_style.background }}",
             foreground: "{{ dag.label_style.foreground }}"

@@ -82,7 +82,7 @@ function autoSizeColumns(columnApi) {
 }
 
 function dateFilterComparator(filterDate, cellDate) {
-  if (cellDate !== 'N/A') {
+  if (cellDate !== null) {
     filterDate = dayjs(filterDate);
     cellDate = dayjs(cellDate);
     if (cellDate < filterDate) {
@@ -134,7 +134,9 @@ function refreshGrid(gridOptions, callback) {
         rowNode.setDataValue("labelStyle", dag.label_style);
         rowNode.setDataValue("tasks", dag.tasks.map(function(t) { return t.task_id}));
         rowNode.setDataValue("state", dag.state);
-        rowNode.setDataValue("endDate", "N/A");
+        rowNode.setDataValue("startDate", dag.last_dag_run.start_date);
+        rowNode.setDataValue("endDate", dag.last_dag_run.end_date);
+        rowNode.setDataValue("lastSuccessfulRun", dag.last_successful_run.end_date);
       }
       gridOptions.api.refreshCells()
       showHideHighPriorityMessage(gridOptions);
@@ -196,6 +198,13 @@ function showHideHighPriorityMessage(gridOptions) {
   }
 }
 
+function formatDate(d) {
+  if (d !== null) {
+    return dayjs(d).format("ddd, D MMM YYYY HH:mm");
+  }
+  return "N/A";
+}
+
 function initDataGrid(rowData, stateFilter, tagFilter) {
   var gridOptions = {
     suppressRowClickSelection: true,
@@ -237,6 +246,9 @@ function initDataGrid(rowData, stateFilter, tagFilter) {
       filter: false,
       filterParams: {
         comparator: dateFilterComparator
+      },
+      cellRenderer: function(cellData) {
+        return formatDate(cellData.data.startDate);
       }
     }, {
       field: "endDate",
@@ -244,6 +256,19 @@ function initDataGrid(rowData, stateFilter, tagFilter) {
       filter: false,
       filterParams: {
         comparator: dateFilterComparator
+      },
+      cellRenderer: function(cellData) {
+        return formatDate(cellData.data.endDate);
+      }
+    }, {
+      field: "lastSuccessfulRun",
+      headerName: "Last Successful Run",
+      filter: false,
+      filterParams: {
+        comparator: dateFilterComparator
+      },
+      cellRenderer: function(cellData) {
+        return formatDate(cellData.data.lastSuccessfulRun);
       }
     }, {
       field: "state",
