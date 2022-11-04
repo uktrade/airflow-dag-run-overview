@@ -29,6 +29,23 @@ def get_enabled_dags(session, tag=None):
     return dags_query
 
 
+def get_last_successful_dagrun(dag_id, session):
+    """
+    Returns the last dag run for a dag, None if there was none.
+    Last dag run can be any type of run eg. scheduled or backfilled.
+    Overridden DagRuns are ignored.
+    """
+    query = session.query(
+        DagRun
+    ).filter(
+        DagRun.dag_id == dag_id,
+        DagRun.state == State.SUCCESS
+    ).order_by(
+        DagRun.execution_date.desc()
+    )
+    return query.first()
+
+
 def get_latest_dag_runs(session, state=None, tag=None):
     dags = []
     pipeline_log_url = os.environ.get("PIPELINE_LOG_URL")
@@ -36,45 +53,64 @@ def get_latest_dag_runs(session, state=None, tag=None):
         last_run = dag.get_last_dagrun(
             session=session, include_externally_triggered=True
         )
-        if last_run is not None:
-            current_state = get_dag_state(last_run)
-            if state and current_state != state:
-                continue
-            dags.append(
-                {
-                    'dag_id': dag.dag_id,
-                    'safe_dag_id': dag.safe_dag_id,
-                    'schedule_interval': str(dag.schedule_interval),
-                    'last_dag_run': {
-                        'start_date': last_run.start_date,
-                        'end_date': last_run.end_date,
-                    },
-                    'tags': [tag.name for tag in dag.tags],
-                    'state': current_state,
-                    'label_style': {
-                        'background': State.color(current_state),
-                        'foreground': State.color_fg(current_state),
-                    },
-                    'log_url': (
-                        pipeline_log_url.format(pipeline_name=dag.dag_id)
-                        if pipeline_log_url is not None
+        if last_run is None:
+            continue
+        current_state = get_dag_state(last_run)
+        if state and current_state != state:
+            continue
+
+        last_successful_run = (
+            last_run
+            if last_run.state == State.SUCCESS
+            else get_last_successful_dagrun(dag.dag_id, session)
+        )
+        dags.append(
+            {
+                'dag_id': dag.dag_id,
+                'safe_dag_id': dag.safe_dag_id,
+                'schedule_interval': str(dag.schedule_interval),
+                'last_dag_run': {
+                    'start_date': last_run.start_date,
+                    'end_date': last_run.end_date,
+                },
+                'last_successful_run': {
+                    'start_date': (
+                        last_successful_run.start_date
+                        if last_successful_run is not None
                         else None
                     ),
-                    'tasks': sorted(
-                        [
-                            {
-                                'task_id': task.task_id,
-                                'start_date': task.start_date,
-                            }
-                            for task in last_run.get_task_instances(
-                                session=session, state=current_state
-                            )
-                            if task.start_date is not None
-                        ],
-                        key=lambda x: x['start_date'],
+                    'end_date': (
+                        last_successful_run.end_date
+                        if last_successful_run is not None
+                        else None
                     )
-                    if current_state in [State.RUNNING, State.FAILED]
-                    else [],
-                }
-            )
+                },
+                'tags': [tag.name for tag in dag.tags],
+                'state': current_state,
+                'label_style': {
+                    'background': State.color(current_state),
+                    'foreground': State.color_fg(current_state),
+                },
+                'log_url': (
+                    pipeline_log_url.format(pipeline_name=dag.dag_id)
+                    if pipeline_log_url is not None
+                    else None
+                ),
+                'tasks': sorted(
+                    [
+                        {
+                            'task_id': task.task_id,
+                            'start_date': task.start_date,
+                        }
+                        for task in last_run.get_task_instances(
+                            session=session, state=current_state
+                        )
+                        if task.start_date is not None
+                    ],
+                    key=lambda x: x['start_date'],
+                )
+                if current_state in [State.RUNNING, State.FAILED]
+                else [],
+            }
+        )
     return sorted(dags, key=lambda x: x["dag_id"])
