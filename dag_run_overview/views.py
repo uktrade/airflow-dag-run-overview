@@ -1,8 +1,11 @@
 import os
 
 from airflow.models import clear_task_instances
+from airflow.security import permissions
 from airflow.utils.db import provide_session
 from airflow.utils.state import State
+from airflow.www import auth
+from airflow.www.api.experimental.endpoints import requires_authentication
 
 from flask import abort, jsonify, make_response, request
 from flask_appbuilder import expose, BaseView
@@ -15,6 +18,11 @@ class DROView(BaseView):
 
     @expose("/")
     @provide_session
+    @auth.has_access(
+        [
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_WEBSITE),
+        ]
+    )
     def list(self, session=None):
         state_filter = request.args.get('state')
 
@@ -27,6 +35,11 @@ class DROView(BaseView):
 
     @expose("/v2/")
     @provide_session
+    @auth.has_access(
+        [
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_WEBSITE),
+        ]
+    )
     def list_v2(self, session=None):
         return self.render_template(
             "main-v2.html",
@@ -35,10 +48,11 @@ class DROView(BaseView):
             state_filter=request.args.get('state'),
             priority_filter=request.args.get('priority'),
             dag_filter=request.args.get('dag'),
-            docs_link=os.environ.get("DAG_RUN_OVERVIEW_DOCS_LINK")
+            docs_link=os.environ.get("DAG_RUN_OVERVIEW_DOCS_LINK"),
         )
 
     @expose("/api/latest-dag-runs", ["GET"])
+    @requires_authentication
     @provide_session
     def list_latest_dag_runs(self, session=None):
         """
@@ -50,6 +64,7 @@ class DROView(BaseView):
         return jsonify(get_latest_dag_runs(session, state_filter, tag_filter))
 
     @expose('/api/clear-failed-dags', ['POST'])
+    @requires_authentication
     @provide_session
     def clear_failed_dag_runs(self, session=None):
         """
@@ -72,6 +87,7 @@ class DROView(BaseView):
         return jsonify(status=f"Cleared tasks for {cleared_count} failed DAGs")
 
     @expose('/api/clear-dags', ['POST'])
+    @requires_authentication
     @provide_session
     def clear_dag_runs(self, session=None):
         """
@@ -84,7 +100,9 @@ class DROView(BaseView):
                 make_response(jsonify(status="Please provide a list of dag_ids"), 400)
             )
         cleared_count = 0
-        dags = [x for x in get_enabled_dags(session) if x.dag_id in request.json["dag_ids"]]
+        dags = [
+            x for x in get_enabled_dags(session) if x.dag_id in request.json["dag_ids"]
+        ]
         for dag in dags:
             last_run = dag.get_last_dagrun(
                 session=session, include_externally_triggered=True
